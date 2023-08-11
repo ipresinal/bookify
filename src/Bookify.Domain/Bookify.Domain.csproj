@@ -9,6 +9,12 @@
   <ItemGroup>
     <Folder Include="Apartments\" />
     <Folder Include="Abstractions\" />
+    <Folder Include="Bookings\Events\" />
+    <Folder Include="Users\Events\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR.Contracts" Version="2.0.1" />
   </ItemGroup>
 
 </Project>
