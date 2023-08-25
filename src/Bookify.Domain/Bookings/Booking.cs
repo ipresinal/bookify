@@ -63,8 +63,10 @@ public sealed class Booking : Entity
         Guid userId,
         DateRange duration,
         DateTime utcNow,
-        PricingDetails pricingDetails)
+        PricingService pricingService)
     {
+        var pricingDetails = pricingService.CalculatePrice(apartment, duration);
+
         var booking = new Booking(
             Guid.NewGuid(),
             apartment.Id,
@@ -84,11 +86,11 @@ public sealed class Booking : Entity
         return booking;
     }
 
-    public IAsyncResult Confirm(DateTime utcNow)
+    public Result Confirm(DateTime utcNow)
     {
         if (Status != BookingStatus.Reserved)
         {
-            return IAsyncResult.Failure(BookingErrors.NotPending);
+            return Result.Failure(BookingErrors.NotReserved);
         }
 
         Status = BookingStatus.Confirmed;
@@ -96,14 +98,14 @@ public sealed class Booking : Entity
 
         RaiseDomainEvent(new BookingConfirmedDomainEvent(Id));
 
-        return IAsyncResult.Success();
+        return Result.Success();
     }
 
-    public IAsyncResult Reject(DateTime utcNow)
+    public Result Reject(DateTime utcNow)
     {
         if (Status != BookingStatus.Reserved)
         {
-            return IAsyncResult.Failure(BookingErrors.NotPending);
+            return Result.Failure(BookingErrors.NotReserved);
         }
 
         Status = BookingStatus.Rejected;
@@ -111,21 +113,21 @@ public sealed class Booking : Entity
 
         RaiseDomainEvent(new BookingRejectedDomainEvent(Id));
 
-        return IAsyncResult.Success();
+        return Result.Success();
     }
 
-    public IAsyncResult Cancel(DateTime utcNow)
+    public Result Cancel(DateTime utcNow)
     {
         if (Status != BookingStatus.Reserved)
         {
-            return IAsyncResult.Failure(BookingErrors.NotConfirmed);
+            return Result.Failure(BookingErrors.NotConfirmed);
         }
 
         var currentdate = DateOnly.FromDateTime(utcNow);
 
         if (currentdate > Duration.Start)
         {
-            return IAsyncResult.Failure(BookingErrors.AlreadyStarted);
+            return Result.Failure(BookingErrors.AlreadyStarted);
         }
 
         Status = BookingStatus.Cancelled;
@@ -133,7 +135,7 @@ public sealed class Booking : Entity
 
         RaiseDomainEvent(new BookingCancelledDomainEvent(Id));
 
-        return IAsyncResult.Success();
+        return Result.Success();
     }
 
 }
